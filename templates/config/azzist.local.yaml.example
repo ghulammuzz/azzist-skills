@@ -1,0 +1,23 @@
+# azzist secrets — DO NOT COMMIT. Copy to azzist.local.yaml and fill in.
+# azzist.local.yaml is gitignored. This .example file is safe to commit.
+
+cloudflare:
+  api_token: "CF_API_TOKEN_WITH_DNS_EDIT_ON_THIS_ZONE"  # scope: Zone.DNS Edit on the one zone only
+  zone_id: "CF_ZONE_ID"
+
+servers:
+  prod:
+    host: 1.2.3.4
+    ssh_user: root
+
+    # Choose ONE auth mode:
+    auth: ssh_config            # ssh_config | key | password
+
+    # auth: ssh_config  -> uses your ~/.ssh/config Host alias (recommended)
+    ssh_alias: myserver
+
+    # auth: key -> private key file
+    # key_path: ~/.ssh/id_ed25519
+
+    # auth: password -> requires sshpass installed locally (discouraged; prefer key/ssh_config)
+    # password: "..."
