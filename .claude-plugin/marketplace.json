@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "azzist-skills",
+  "description": "End-to-end vibecoding toolkit for Claude Code: scaffold, deploy, and expose projects publicly with server isolation.",
+  "owner": {
+    "name": "ghulammuzz",
+    "url": "https://github.com/ghulammuzz"
+  },
+  "plugins": [
+    {
+      "name": "azzist",
+      "description": "Scaffold -> docker -> ssh deploy -> nginx/Traefik proxy -> Cloudflare DNS. Ship E2E without disturbing existing server services.",
+      "source": "./",
+      "category": "deployment"
+    }
+  ]
+}

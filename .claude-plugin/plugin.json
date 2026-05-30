@@ -1,0 +1,9 @@
+{
+  "name": "azzist",
+  "description": "End-to-end vibecoding toolkit: scaffold, dockerize, deploy over SSH, reverse-proxy (nginx/Traefik), and Cloudflare DNS to ship a project to a public URL with strict server isolation.",
+  "version": "0.1.0",
+  "author": {
+    "name": "ghulammuzz",
+    "url": "https://github.com/ghulammuzz"
+  }
+}

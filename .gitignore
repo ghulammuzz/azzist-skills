@@ -1,0 +1,13 @@
+# azzist secrets — NEVER commit these
+azzist.local.yaml
+**/azzist.local.yaml
+*.local.yaml
+
+# node / nuxt build artifacts (in case templates get instantiated here)
+node_modules/
+.nuxt/
+.output/
+dist/
+
+# os
+.DS_Store
