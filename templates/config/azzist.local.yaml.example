@@ -5,6 +5,14 @@ cloudflare:
   api_token: "CF_API_TOKEN_WITH_DNS_EDIT_ON_THIS_ZONE"  # scope: Zone.DNS Edit on the one zone only
   zone_id: "CF_ZONE_ID"
 
+# How the SERVER authenticates to pull the repo (only for deploy.transfer: git).
+git:
+  auth: deploy_key      # deploy_key | ssh_agent | token
+                        #   deploy_key: read-only key already installed on the server (recommended)
+                        #   ssh_agent:  forward your local ssh-agent (ssh -A) at deploy time
+                        #   token:      HTTPS personal access token (read-only)
+  # token: "GH_READ_ONLY_PAT"   # only when auth: token
+
 servers:
   prod:
     host: 1.2.3.4

@@ -12,6 +12,11 @@ deploy:
                             #   auto: detect Traefik container -> use labels; else nginx vhost; else install nginx
   port: auto                # auto: pick a free host port on the server | or a fixed number e.g. 8080
   server: prod              # references a server entry under servers: in azzist.local.yaml
+  transfer: git             # git | image
+                            #   git: server pulls repo + builds remotely (default, preferred)
+                            #   image: build locally, docker save|load over ssh
+  repo: git@github.com:owner/repo.git   # source repo (transfer: git)
+  branch: main              # branch to deploy (transfer: git)
 
 database: none              # none | postgres   (postgres runs as an isolated container in the project network)
 cache: none                # none | redis      (redis runs as an isolated container in the project network)
