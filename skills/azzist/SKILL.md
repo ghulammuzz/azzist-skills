@@ -30,11 +30,20 @@ v1 implements the **Nuxt web** golden path end-to-end. Other stacks are scaffold
 
 ## Flow
 
+First decide: **new project** or **existing project**?
+
+- **Existing code present** (source files already in the dir/repo) → run **azzist-analyze**
+  to comprehensively trace the codebase, detect the stack/port/services, and propose an
+  `azzist.yaml`. Then go to step 1 (Config) and skip Scaffold.
+- **Empty / new** → follow Config → Scaffold → Deploy → Server.
+
 1. **Config** — if `azzist.yaml` is absent, run **azzist-init** to create `azzist.yaml`
-   (committed) and `azzist.local.yaml` (gitignored secrets). Make sure the user has filled
-   the domain, Cloudflare token/zone, and server SSH details before any remote step.
-2. **Scaffold** — run **azzist-scaffold** to generate the project and confirm `npm run dev`
-   works locally.
+   (committed) and `azzist.local.yaml` (gitignored secrets). For an existing project, reuse
+   the `azzist.yaml` proposed by azzist-analyze and only generate the secrets file. Make sure
+   the user has filled the domain, Cloudflare token/zone, and server SSH details before any
+   remote step.
+2. **Scaffold** (new projects only) — run **azzist-scaffold** to generate the project and
+   confirm `npm run dev` works locally.
 3. **Deploy** — run **azzist-deploy** to build the image, smoke-test it, and run it isolated
    on the server (`azzist_<name>` network, private port). **Pause and confirm with the user
    before this first remote/destructive step** (it installs Docker if missing and runs

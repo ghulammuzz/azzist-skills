@@ -37,7 +37,11 @@ v1 implements the **Nuxt web** path end-to-end. Other stacks are planned.
 
 Then just ask Claude to ship something, e.g. *"use azzist to deploy a landing page at
 landing.example.com"*. The `azzist` orchestrator skill runs the sub-skills in order:
-`azzist-init` → `azzist-scaffold` → `azzist-deploy` → `azzist-server`.
+
+- **New project:** `azzist-init` → `azzist-scaffold` → `azzist-deploy` → `azzist-server`.
+- **Existing project:** `azzist-analyze` (comprehensively traces the codebase — every file
+  except dependency/build folders — to detect stack, port, and services) → `azzist-init`
+  (secrets only) → `azzist-deploy` → `azzist-server`.
 
 ## Configuration (secret-safe by design)
 
@@ -97,7 +101,7 @@ If azzist hits something unexpected on your server, it stops and asks rather tha
 
 ```
 .claude-plugin/   plugin.json + marketplace.json
-skills/           azzist, azzist-init, azzist-scaffold, azzist-deploy, azzist-server
+skills/           azzist, azzist-analyze, azzist-init, azzist-scaffold, azzist-deploy, azzist-server
 templates/        nuxt/, Dockerfile.nuxt, nginx.vhost.conf.tmpl, config/
 scripts/          ssh-helpers.sh, free-port.sh, detect-proxy.sh, cf-dns.sh
 ```
