@@ -11,6 +11,20 @@ description: >
 
 Create the two-file config split so secrets never land in a public repo.
 
+This skill is **idempotent and only concerns config files** — it creates or updates
+`azzist.yaml` + `azzist.local.yaml`, nothing else.
+
+- If **azzist-analyze** ran just before this, REUSE its proposed yaml fields to populate
+  `azzist.yaml` (project name, stack, port, db/cache, repo, branch). Don't re-ask for
+  things analyze already figured out — just confirm with the user once.
+- If `azzist.yaml` already exists AND `azzist.local.yaml` already exists with the expected
+  keys filled in, STOP and tell the user: *"already initialized — `azzist.yaml` at <path>
+  and `azzist.local.yaml` (gitignored) are in place. Re-run azzist-analyze to refresh
+  detection, or edit the files directly."* Don't overwrite them silently.
+- If only one of the two exists, create the missing one. If both exist but fields drifted
+  (e.g. analyze detected a new stack), offer to UPDATE specific fields rather than
+  regenerating from scratch.
+
 ## Security first (do this BEFORE writing any secret file)
 
 1. Ensure the project `.gitignore` excludes the secrets file. If `.gitignore` does not

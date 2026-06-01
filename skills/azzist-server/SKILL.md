@@ -14,6 +14,26 @@ Inputs: `<name>` = `project.name`, `<domain>`, `<port>` (from azzist-deploy), `d
 and `cloudflare` secrets from `azzist.local.yaml`. Source ssh helpers first:
 `source ${CLAUDE_PLUGIN_ROOT}/scripts/ssh-helpers.sh` (with AZZIST_SSH_* exported).
 
+## Dual purpose: deploy wiring AND infra/server debugging
+
+This skill is used in two modes:
+
+1. **Wire mode (post-deploy):** the steps below — proxy + DNS + TLS + reachability check.
+2. **Debug mode (anytime):** the same SSH helpers, proxy detector, port scanner, and DNS
+   helper double as an infra-layer debugging surface. When the user reports "site is down",
+   "502 / 504 / SSL error", "DNS not resolving", "proxy misbehaving", or "container not
+   reachable from outside", run this skill in debug mode:
+   - `bash ${CLAUDE_PLUGIN_ROOT}/scripts/detect-proxy.sh` — what proxy is actually running?
+   - `azzist_ssh 'docker ps --filter name=azzist_<name>'` — is OUR container up?
+   - `azzist_ssh 'curl -fsS http://127.0.0.1:<port>/healthz'` — is the app healthy on the loopback?
+   - `azzist_ssh 'ss -tlnH | grep <port>'` — is the port bound?
+   - `azzist_ssh 'sudo nginx -T 2>/dev/null | grep -A5 azzist_<name>'` — is OUR vhost present?
+   - `azzist_ssh 'docker logs --tail=200 traefik'` (or our app) — what does the proxy say?
+   - `dig +short <domain>` and `curl -sSIv https://<domain>` — DNS + TLS reachable?
+   - Cloudflare API GET via `cf-dns.sh`-style call to inspect the current record.
+   Diagnose at the boundary that broke (container → proxy → DNS → TLS) and propose the
+   minimal fix. Same isolation rule applies: do not touch resources outside `azzist_<name>*`.
+
 ## 1. Decide proxy strategy
 
 If `deploy.proxy: auto`, detect:

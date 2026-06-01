@@ -38,6 +38,18 @@ key already on the server), `ssh_agent` (forward your local agent), or `token` (
    as needed and `source ${CLAUDE_PLUGIN_ROOT}/scripts/ssh-helpers.sh`. For `ssh_agent` git
    auth, connect with agent forwarding (`ssh -A`).
 
+1a. **Survey the server BEFORE doing anything.** Always inspect what's already on the box so we
+    don't collide or duplicate:
+    - **Reverse proxy present?** `bash ${CLAUDE_PLUGIN_ROOT}/scripts/detect-proxy.sh` ->
+      `traefik` | `nginx` | `none`. If one exists, REUSE it later in azzist-server (do not
+      install another). If `none`, ASK the user before installing nginx — never silently add
+      a new proxy.
+    - **Port conflicts.** Whether `deploy.port: auto` or a fixed number, always check the
+      target port is actually free on the server before binding. For `auto`, scan and pick a
+      free one (see step 6). For a fixed port, if it is already in use, STOP and ask the user
+      whether to pick another or evict (we never evict). Use `azzist_ssh 'ss -tlnH | awk "{print \$4}" | grep -E ":<port>\$"'`.
+    - Record both findings; they drive steps 6 (port) and the handoff to azzist-server (proxy).
+
 2. **PREFLIGHT — verify the server can pull the (private) repo.** Do this FIRST, before any
    build, so failures are cheap. Skip only in `image` mode.
    ```
@@ -54,6 +66,22 @@ key already on the server), `ssh_agent` (forward your local agent), or `token` (
 3. **Ensure remote Docker.** `azzist_ssh 'command -v docker'`. If missing, install Docker via
    the official convenience script (`curl -fsSL https://get.docker.com | sh`) — this adds
    Docker only; it does not alter existing services. Confirm with the user before installing.
+
+3a. **Validate the Dockerfile before any build.** A broken Dockerfile wastes minutes of
+    server time — catch it locally first.
+    - Confirm `Dockerfile` exists at the build context the build command will use.
+    - Lint with `docker build --check .` if available (BuildKit), else a local
+      `docker build --target <stage> .` dry-run on the cheap stages.
+    - Required contract: image must `EXPOSE` a port AND respond on `/healthz` (liveness)
+      and `/readyz` (readiness). If the project's framework doesn't have these, add minimal
+      handlers before deploy (Nuxt: a Nitro route handler; Go: a `/healthz` mux entry).
+    - Locally run the built image and probe both endpoints:
+      ```
+      docker run -d --rm --name azzist_<name>_validate -p 13000:3000 azzist_<name>_app:latest
+      curl -fsS http://localhost:13000/healthz && curl -fsS http://localhost:13000/readyz
+      docker stop azzist_<name>_validate
+      ```
+      If either probe fails, STOP — do not ship a container that can't report health.
 
 4. **Build + ship (branch on transfer mode).**
 
@@ -91,8 +119,24 @@ key already on the server), `ssh_agent` (forward your local agent), or `token` (
      azzist_<name>_app:latest'
    ```
    Binding to `127.0.0.1:<port>` keeps the app private until the proxy fronts it.
-8. **Verify on server.** `azzist_ssh 'curl -fsS http://127.0.0.1:<port> >/dev/null && echo up'`.
-9. Hand `<port>` and the running container to **azzist-server** for proxy + DNS.
+8. **Verify on server.** Probe BOTH endpoints (not just root) to confirm the container is
+   actually serving and ready:
+   ```
+   azzist_ssh 'curl -fsS http://127.0.0.1:<port>/healthz >/dev/null && echo health_ok'
+   azzist_ssh 'curl -fsS http://127.0.0.1:<port>/readyz  >/dev/null && echo ready_ok'
+   ```
+   Both must pass before handoff.
+
+8a. **Pre-check the target domain.** Before handing off to azzist-server, see whether
+    `<domain>` already resolves and where it points:
+    `dig +short <domain>` (locally) and `curl -sSI http://<domain>` (best-effort).
+    - If it already resolves to a DIFFERENT IP than this server, WARN the user — the
+      Cloudflare upsert in azzist-server will replace it. Confirm before proceeding.
+    - If it resolves to this server already, note it — we just need to ensure proxy + TLS.
+    - If it doesn't resolve yet, fine — azzist-server will create the record.
+
+9. Hand `<port>`, the running container, the detected proxy (from step 1a), and the
+   domain pre-check result to **azzist-server** for proxy + DNS + TLS + final reachability.
 
 ## Optional: database / cache (if enabled in azzist.yaml)
 

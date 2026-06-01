@@ -14,6 +14,13 @@ Build an accurate picture of an existing codebase before deploying it. Be thorou
 trace the files, do not guess from one marker. The goal is a correct `azzist.yaml` and a
 deploy plan that fits what the project really is.
 
+This skill is **re-runnable**: run it on a fresh repo to PROPOSE a new `azzist.yaml`, OR run
+it on a project that already has one to **refresh/UPDATE** the existing yaml as the codebase
+evolves (new dependency, port change, added DB/cache, stack swap). When an `azzist.yaml`
+already exists, diff your findings against it and update only the fields that drifted —
+don't blow away user-customized values like `domain` or `deploy.server` unless detection
+clearly contradicts them; ask first.
+
 ## 1. Inventory every source file (skip dependency/build/VCS dirs)
 
 Excluded directories (never descend into these — they are deps/build/VCS noise):
@@ -56,6 +63,13 @@ the root. Read the files that matter (below) — do not stop at filename pattern
 
 Read `package.json` `scripts`, `go.mod`, `pyproject.toml`, etc. to get the real build and
 run commands — do not assume. For monorepos, identify each deployable app separately.
+
+**Always report the CURRENT stack explicitly and cross-check with the user before continuing.**
+State what you detected (e.g. "Nuxt 3 + Go API + Postgres + Redis") and ask the user to
+confirm or correct it. Stacks drift — what the repo started as may not be what it is now.
+If an existing `azzist.yaml` lists a different `project.stack` than what you just detected,
+flag the mismatch explicitly so the user can decide whether to update the yaml or fix the
+detection.
 
 ## 3. Detect deployment-relevant facts (read the files)
 
